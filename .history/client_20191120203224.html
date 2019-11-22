@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>吴瑶瑶的聊天室</title>
+</head>
+<body>
+  <input id="rename"></input>
+  <button id="renameBtn">你的名字</button>
+  <textarea id="message"></textarea>
+  <button id="messageBtn">发送内容</button>
+  <script type="text/javascript" src="https://cdn.bootcss.com/socket.io/2.3.0/socket.io.js"></script>
+  <script type="text/javascript">
+    const socket = io.connect('/');
+    const renameBtn = document.getElementById('renameBtn');
+    const messageBtn = document.getElementById('messageBtn');
+    messageBtn.onclick = () => {
+      const val = document.getElementById('message').value;
+      if (!val) return;
+      // socket.send(val)
+      socket.emit("message", val);
+      document.getElementById('message').value = '';
+    }
+    renameBtn.onclick = () => {
+      const newName = document.getElementById('rename').value;
+      socket.emit('chat message', 'sss');
+    }
+    // 如果客户端监听到socket消息，那么执行这个方法里的回调，且得到广播的消息
+    socket.on("chat message", (msg) => {
+      console.log(msg)
+      // if (!msg) return;
+      // const p = document.createElement("p");
+      // p.innerText = msg;
+      // document.body.appendChild(p);
+    })
+    // 如果客户端监听到socket消息，那么执行这个方法里的回调，且得到广播的消息
+    socket.on("message", (msg) => {
+      if (!msg) return;
+      const p = document.createElement("p");
+      p.innerText = msg;
+      document.body.appendChild(p);
+    })
+    socket.on("chat", (msg) => {
+      console.log(msg)
+      // if (!msg) return;
+      // const p = document.createElement("p");
+      // p.innerText = msg;
+      // document.body.appendChild(p);
+    })
+  </script>
+</body>
+</html>

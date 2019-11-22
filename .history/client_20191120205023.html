@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>吴瑶瑶的聊天室</title>
+</head>
+<body>
+  <textarea id="name"></textarea>
+  <button id="nameBtn">发送内容</button>
+  <textarea id="msg"></textarea>
+  <button id="msgBtn">发送内容</button>
+  <script type="text/javascript" src="https://cdn.bootcss.com/socket.io/2.3.0/socket.io.js"></script>
+  <script type="text/javascript">
+    var socket = io.connect('/');
+    const msgBtn = document.getElementById('msgBtn');
+    const msgEl = document.getElementById('msg');
+    const nameBtn = document.getElementById('nameBtn');
+    const nameEl = document.getElementById('name');
+    msgBtn.onclick = () => {
+      const val = msgEl.value;
+      if (!val) return;
+      socket.emit('chat', val);
+      msgEl.value = '';
+    }
+    // 如果客户端监听到socket消息，那么执行这个方法里的回调，且得到广播的消息
+    socket.on("chat", (msg) => {
+      if (!msg) return;
+      var p = document.createElement("p");
+      p.innerText = msg;
+      document.body.appendChild(p);
+    })
+  </script>
+</body>
+</html>

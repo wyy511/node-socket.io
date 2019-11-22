@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>吴瑶瑶的聊天室</title>
+  <style>
+    *{
+      margin: 0;
+      padding: 0;
+    }
+    #msgBox {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="nameBox">
+    <input id="name" />
+    <button id="nameBtn">输入昵称</button>
+  </div>
+  <div id="msgBox">
+    <input id="msg" onkeydown="enterChart(event)" />
+    <button id="msgBtn" onclick="sendChart()">发送内容</button>
+  </div>
+  <script type="text/javascript" src="https://cdn.bootcss.com/socket.io/2.3.0/socket.io.js"></script>
+  <script type="text/javascript">
+    var socket = io.connect('ws://172.19.162.86:3000');
+    var name = '';
+    var userId = '';
+    const msgBtn = document.getElementById('msgBtn');
+    const msgEl = document.getElementById('msg');
+    const nameBtn = document.getElementById('nameBtn');
+    const nameEl = document.getElementById('name');
+    const msgBox = document.getElementById('msgBox');
+    const nameBox = document.getElementById('nameBox');
+    nameBtn.onclick = () => {
+      const val = nameEl.value;
+      if (!val) return;
+      name = val;
+      socket.emit('changeName', name);
+      nameEl.value = '';
+      nameBox.style.display = 'none';
+      msgBox.style.display = 'block';
+    }
+    // 如果客户端监听到socket消息，那么执行这个方法里的回调，且得到广播的消息
+    socket.on("changeName", data => {
+      console.log(data)
+      var p = document.createElement("p");
+      userId = data.userId;
+      p.innerText = data.msg;
+      document.body.appendChild(p);
+    })
+    function enterChart (e) {
+      if (e.keyCode === 13) {
+        sendChart();
+      }
+    }
+    function sendChart () {
+      const val = msgEl.value;
+      if (!val) return;
+      msgEl.value = '';
+      socket.emit('chat', {
+        userId,
+        name,
+        msg: val
+      });
+    }
+    // 如果客户端监听到socket消息，那么执行这个方法里的回调，且得到广播的消息
+    socket.on("chat", (data) => {
+      var p = document.createElement("p");
+      p.innerText = data.msg;
+      document.body.appendChild(p);
+    })
+  </script>
+</body>
+</html>

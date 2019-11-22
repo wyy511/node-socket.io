@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>chat</title>
+  <style>
+    *{
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    .title {
+      text-align: center;
+    }
+    .login-input {
+      margin-top: 30%;
+    }
+    .avatar {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    #msgBox {
+      display: none;
+    }
+    #content { 
+      height: -webkit-calc(100vh - 150px); 
+      height: -moz-calc(100vh - 150px); 
+      height: -ms-calc(100vh - 150px); 
+      height: -o-calc(100vh - 150px); 
+      height: calc(100vh - 100px); 
+      overflow-y: auto;
+    }
+    .content-title {
+      text-align: center;
+    }
+    .content-item {
+      padding: 5px;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+    .content-left {
+      text-align: left;
+      align-items: flex-start;
+    }
+    .content-right {
+      text-align: right;
+      align-items: flex-end;
+    }
+    .content-text {
+      word-break: break-all;
+      margin-top: 22px;
+    }
+    .avatar-left {
+      margin-right: 5px;
+    }
+    .avatar-right {
+      margin-left: 5px;
+    }
+    footer {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+  </style>
+  <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <!-- <h3 class="title">欢迎来到吴瑶瑶的聊天室</h3> -->
+    </header>
+    <div id="nameBox">
+      <div class="login-avatar">
+        <input accept="image/png,image/gif,image/jpeg" type="file" onchange='uploadImage(this)'/>
+        <img alt="选择头像" id="upload-avatar" class="avatar" />
+      </div>
+      <div class="input-group login-input">
+        <input id="name" class="form-control" type="text" placeholder="请输入昵称" />
+        <span id="nameBtn" class="input-group-addon">确定</span>
+      </div>
+      <div id="imgPreview" style='width: 500px; height: 400px;'>
+      </div>
+    </div>
+    <div id="content"></div>
+    <footer>
+      <div id="msgBox">
+        <div class="input-group">
+          <input id="msg" class="form-control" type="text" onkeydown="enterChart(event)" placeholder="请输入内容" />
+          <span id="msgBtn" class="input-group-addon" onclick="sendChart()">发送</span>
+        </div>
+      </div>
+    </footer>
+  </div>
+  <script type="text/javascript" src="https://cdn.bootcss.com/socket.io/2.3.0/socket.io.js"></script>
+  <script type="text/javascript">
+    var socket = io.connect('ws://172.19.162.86:3000');
+    var name = '';
+    var userId = '';
+    var avatar = '';
+    const msgBtn = document.getElementById('msgBtn');
+    const msgEl = document.getElementById('msg');
+    const nameBtn = document.getElementById('nameBtn');
+    const nameEl = document.getElementById('name');
+    const msgBox = document.getElementById('msgBox');
+    const nameBox = document.getElementById('nameBox');
+    const content = document.getElementById('content');
+    nameBtn.onclick = () => {
+      const val = nameEl.value;
+      if (!avatar) {
+        alert("请选择头像");
+        return; 
+      }
+      if (!val) {
+        alert("请填写昵称");
+        return; 
+      }
+      name = val;
+      userId = val;
+      socket.emit('changeName', {name, avatar});
+      nameEl.value = '';
+      nameBox.style.display = 'none';
+      msgBox.style.display = 'block';
+    }
+    // 如果客户端监听到socket消息，那么执行这个方法里的回调，且得到广播的消息
+    socket.on("changeName", data => {
+      var p = document.createElement("p");
+      p.className = "content-title";
+      p.innerText = data.msg;
+      content.appendChild(p);
+    })
+    // 上传图片部分
+    function uploadImage(img) {
+      // 生成一个文件读取的对象
+      const reader = new FileReader();
+      reader.onload = function (ev) {
+          // base64码
+          const { result } = ev.target;//或e.target都是一样的
+          avatar = result;
+          document.getElementById("upload-avatar").src = result;
+      }
+      //发起异步读取文件请求，读取结果为data:url的字符串形式，
+      reader.readAsDataURL(img.files[0]);
+    } 
+    function enterChart (e) {
+      if (e.keyCode === 13) {
+        sendChart();
+      }
+    }
+    function sendChart () {
+      const val = msgEl.value;
+      if (!val) return;
+      msgEl.value = '';
+      socket.emit('chat', {
+        avatar,
+        userId,
+        name,
+        msg: val
+      });
+    }
+    // 如果客户端监听到socket消息，那么执行这个方法里的回调，且得到广播的消息
+    socket.on("chat", (data) => {
+      var div = document.createElement("div");
+      var span = document.createElement("span");
+      var img = document.createElement("img");
+      span.innerText = data.msg;
+      img.src = data.avatar;
+      span.className = "content-text";
+      if (data.userId === userId) {
+        img.className = "avatar avatar-right";
+        div.appendChild(span);
+        div.appendChild(img);
+        div.className = "content-right content-item";
+      } else {
+        img.className = "avatar avatar-left";
+        div.appendChild(img);
+        div.appendChild(span);
+        div.className = "content-left content-item";
+      }
+      content.appendChild(div);
+    })
+  </script>
+</body>
+</html>

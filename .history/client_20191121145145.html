@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>吴瑶瑶的聊天室</title>
+  <style>
+    *{
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    .title {
+      text-align: center;
+    }
+    .login-input {
+      margin-top: 30%;
+    }
+    #msgBox {
+      display: none;
+    }
+    #content { 
+      height: -webkit-calc(100vh - 150px); 
+      height: -moz-calc(100vh - 150px); 
+      height: -ms-calc(100vh - 150px); 
+      height: -o-calc(100vh - 150px); 
+      height: calc(100vh - 100px); 
+    }
+    .content-title {
+      text-align: center;
+    }
+    .content-left {
+      text-align: left;
+    }
+    .content-right {
+      text-align: right;
+    }
+    footer {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+  </style>
+  <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h3 class="title">欢迎来到吴瑶瑶的聊天室</h3>
+    </header>
+    <div id="nameBox">
+      <div class="input-group login-input">
+        <input id="name" class="form-control" type="text" placeholder="请输入昵称" />
+        <span id="nameBtn" class="input-group-addon">确定</span>
+      </div>
+      <input id="name" class="form-control" type="file" onchange='uploadImage(this)'/>
+    </div>
+    <div id="content"></div>
+    <footer>
+      <div id="msgBox">
+        <div class="input-group">
+          <input id="msg" class="form-control" type="text" onkeydown="enterChart(event)" placeholder="请输入内容" />
+          <span id="msgBtn" class="input-group-addon" onclick="sendChart()">发送</span>
+        </div>
+      </div>
+    </footer>
+  </div>
+  <script type="text/javascript" src="https://cdn.bootcss.com/socket.io/2.3.0/socket.io.js"></script>
+  <script type="text/javascript">
+    var socket = io.connect('ws://172.19.162.86:3000');
+    var name = '';
+    var userId = '';
+    const msgBtn = document.getElementById('msgBtn');
+    const msgEl = document.getElementById('msg');
+    const nameBtn = document.getElementById('nameBtn');
+    const nameEl = document.getElementById('name');
+    const msgBox = document.getElementById('msgBox');
+    const nameBox = document.getElementById('nameBox');
+    const content = document.getElementById('content');
+    nameBtn.onclick = () => {
+      const val = nameEl.value;
+      if (!val) return;
+      name = val;
+      userId = val;
+      socket.emit('changeName', name);
+      nameEl.value = '';
+      nameBox.style.display = 'none';
+      msgBox.style.display = 'block';
+    }
+    // 如果客户端监听到socket消息，那么执行这个方法里的回调，且得到广播的消息
+    socket.on("changeName", data => {
+      var p = document.createElement("p");
+      p.className = "content-title";
+      p.innerText = data.msg;
+      content.appendChild(p);
+    })
+    function uploadImage(e) {
+      console.log(e)
+    } 
+    function enterChart (e) {
+      if (e.keyCode === 13) {
+        sendChart();
+      }
+    }
+    function sendChart () {
+      const val = msgEl.value;
+      if (!val) return;
+      msgEl.value = '';
+      socket.emit('chat', {
+        userId,
+        name,
+        msg: val
+      });
+    }
+    // 如果客户端监听到socket消息，那么执行这个方法里的回调，且得到广播的消息
+    socket.on("chat", (data) => {
+      var p = document.createElement("p");
+      p.innerText = data.msg;
+      console.log(data.userId, userId)
+      if (data.userId === userId) {
+        p.className = "content-right";
+      } else {
+        p.className = "content-left";
+      }
+      content.appendChild(p);
+    })
+  </script>
+</body>
+</html>

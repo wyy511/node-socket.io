@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>吴瑶瑶的聊天室</title>
+</head>
+<body>
+  <input id="rename"></input>
+  <button id="renameBtn">你的名字</button>
+  <textarea id="message"></textarea>
+  <button id="messageBtn">发送内容</button>
+  <script type="text/javascript" src="https://cdn.bootcss.com/socket.io/2.3.0/socket.io.js"></script>
+  <script type="text/javascript">
+    const socket = io.connect('/');
+    const renameBtn = document.getElementById('renameBtn');
+    const messageBtn = document.getElementById('messageBtn');
+    messageBtn.onclick = () => {
+      const val = document.getElementById('message').value;
+      if (!val) return;
+      socket.send(val)
+      document.getElementById('message').value = '';
+    }
+    renameBtn.onclick = () => {
+      const newName = document.getElementById('rename').value;
+      console.log(112)
+      socket.emit('changeName', { name: newName }, function (result) {
+        if (!result) {
+          return alert('There was an error changing your name');
+        }
+        console.log(result)
+        // var users = _this.state.users;
+
+        // var index = users.indexOf(oldName);
+        // users.splice(index, 1, newName);
+        // _this.setState({ users: users, user: newName });
+      });
+    }
+    // 如果客户端监听到socket消息，那么执行这个方法里的回调，且得到广播的消息
+    socket.on("message", (msg) => {
+      if (!msg) return;
+      const p = document.createElement("p");
+      p.innerText = msg;
+      document.body.appendChild(p);
+    })
+  </script>
+</body>
+</html>
