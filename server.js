@@ -16,6 +16,23 @@ var msgList = [];
 var userNum = 0;
 var userIdLIst = [];
 
+function formateTime(str) {
+  let res = str;
+  if (str <= 9) res = `0${str}`;
+  return res;
+}
+
+function getCurTime() {
+  const date = new Date();
+  const year = new Date().getFullYear();
+  const month = new Date().getMonth();
+  const day = new Date().getDate();
+  const hour = date.getHours();
+  const minute = date.getMinutes();
+  const second = date.getSeconds();
+  return `${year}年${month}月${day}日 ${formateTime(hour)}:${formateTime(minute)}:${formateTime(second)}`
+}
+
 io.on('connection', socket => {
   console.log("当前由用户里连接聊天室")
   // 一旦监测到客户端有哦数据过来，要接受客户端的信息
@@ -25,6 +42,7 @@ io.on('connection', socket => {
     let msg = null;
     let avatar = data.avatar;
     let status = null; // 用户的状态，0从未进入，1进入过
+    
     if (curUser.length) {
       avatar = curUser[0].avatar
       userId = curUser[0].userId;
@@ -43,6 +61,7 @@ io.on('connection', socket => {
     }
     // msg是客户端发来的信息
     io.emit("changeName", {
+      date: getCurTime(),
       msg,
       status
     }); // 服务端将msg信息广播给所有的客户端，

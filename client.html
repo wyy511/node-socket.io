@@ -42,9 +42,13 @@
       display: block;
       clear: both;
     }
+    .content-time {
+      text-align: center;
+      font-size: 12px;
+      display: block;
+    }
     .content-title {
       text-align: center;
-      padding-top: 22px;
     }
     .content-left {
       text-align: left;
@@ -132,13 +136,7 @@
       nameBox.style.display = 'none';
       msgBox.style.display = 'block';
     }
-    // 如果客户端监听到socket消息，那么执行这个方法里的回调，且得到广播的消息
-    socket.on("changeName", data => {
-      var p = document.createElement("p");
-      p.className = "content-title";
-      p.innerText = data.msg;
-      content.appendChild(p);
-    })
+    
     // 上传图片部分
     function uploadImage(img) {
       // 生成一个文件读取的对象
@@ -169,6 +167,17 @@
       });
     }
     // 如果客户端监听到socket消息，那么执行这个方法里的回调，且得到广播的消息
+    socket.on("changeName", data => {
+      const time = document.createElement("span");
+      const msg = document.createElement("p");
+      time.className = "content-time";
+      msg.className = "content-title";
+      time.innerText = data.date;
+      msg.innerText = data.msg;
+      content.appendChild(time);
+      content.appendChild(msg);
+    })
+    // 如果客户端监听到socket消息，那么执行这个方法里的回调，且得到广播的消息
     socket.on("chat", (data) => {
       var div = document.createElement("div");
       var span = document.createElement("span");
@@ -188,6 +197,7 @@
         div.className = "content-left content-item";
       }
       content.appendChild(div);
+      document.getElementById('content').scrollTop = document.getElementById('content').scrollHeight
     })
   </script>
 </body>
